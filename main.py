@@ -15,9 +15,9 @@ import re
 
 ### Config ###
 LOG_FOLDER_NAME = "logs"
-SUBREDDIT = "rbny"
+SUBREDDIT = "SoundersFC"
 SUBREDDIT_TEAMS = "mls"
-USER_AGENT = "RBNYSideBarUpdater (by /u/Watchful1)"
+USER_AGENT = "SoundersSideBarUpdater (by /u/Watchful1)"
 TEAM_NAME = "New York Red Bulls"
 
 ### Logging setup ###
@@ -62,57 +62,26 @@ def matchesTable(table, str):
 	return False
 
 
-teams = []
+teams = [{'link': '/r/dynamo', 'contains': 'Houston Dynamo'}
+	,{'link': '/SEA', 'contains': 'Seattle Sounders FC'}
+	,{'link': '/r/SportingKC', 'contains': 'Sporting Kansas City'}
+	,{'link': '/r/fcdallas', 'contains': 'FC Dallas'}
+	,{'link': '/r/timbers', 'contains': 'Portland Timbers'}
+	,{'link': '/r/SJEarthquakes', 'contains': 'San Jose Earthquakes'}
+	,{'link': '/r/whitecapsfc', 'contains': 'Vancouver Whitecaps FC'}
+	,{'link': '/r/realsaltlake', 'contains': 'Real Salt Lake'}
+	,{'link': '/r/LAGalaxy', 'contains': 'LA Galaxy'}
+	,{'link': '/r/Rapids', 'contains': 'Colorado Rapids'}
+	,{'link': '/r/minnesotaunited', 'contains': 'Minnesota United'}
+]
 
 
-def getTeamLink(name, useFullname=False, nameOnly=False):
+def getTeamLink(name):
 	for item in teams:
 		if item['contains'].lower() in name.lower():
-			if nameOnly:
-				return (item['contains'] if useFullname else item['acronym'])
-			else:
-				return ("["+(item['contains'] if useFullname else item['acronym'])+"]("+item['link']+")", item['include'])
+			return '[](' + item['link'] + ') ' + name
 
-	if nameOnly:
-		return ""
-	else:
-		return ("", False)
-
-
-channels = [{'contains': 'ESPN2', 'link': 'http://espn.go.com/watchespn/index/_/sport/soccer-futbol/channel/espn2', 'exact': True, 'allowMLS': False}
-    ,{'contains': 'ESPN', 'link': 'http://www.espn.com/watchespn/index/_/sport/soccer-futbol/channel/espn', 'exact': True, 'allowMLS': False}
-	,{'contains': 'FS1', 'link': 'http://msn.foxsports.com/foxsports1', 'exact': False, 'allowMLS': False}
-	,{'contains': 'FS2', 'link': 'https://en.wikipedia.org/wiki/Fox_Sports_2', 'exact': False, 'allowMLS': False}
-	,{'contains': 'UDN', 'link': 'http://www.univision.com/deportes/futbol/mls', 'exact': False, 'allowMLS': False}
-	,{'contains': 'Univision', 'link': 'http://www.univision.com/deportes/futbol/mls', 'exact': True, 'allowMLS': False}
-	,{'contains': 'UniMás', 'link': 'http://tv.univision.com/unimas', 'exact': False, 'allowMLS': False}
-	,{'contains': 'facebook.com', 'link': 'http://www.live.fb.com/', 'exact': False, 'allowMLS': True}
-	,{'contains': 'FOX', 'link': 'http://www.fox.com/', 'exact': True, 'allowMLS': False}
-	,{'contains': 'beIN', 'link': 'http://www.beinsport.tv/', 'exact': False, 'allowMLS': True}
-	,{'contains': 'TSN', 'link': '#tsn', 'exact': False, 'allowMLS': True}
-	,{'contains': 'MLS LIVE', 'link': 'http://live.mlssoccer.com/mlsmdl', 'exact': False, 'allowMLS': True}
-]
-msgLink = 'http://www.msgnetworks.com/teams/red-bulls/'
-
-
-def getChannelLink(name, replaceMLSLive=False):
-	stations = name.split(',')
-	strList = []
-	included = set()
-	allowMLS = True
-	for item in channels:
-		for station in stations:
-			if item['contains'] not in included:
-				if len(strList) < 3 or (len(strList) < 6 and (item['contains'] != "MLS LIVE" or allowMLS)):
-					if (item['exact'] and item['contains'] == station.strip()) or (not item['exact'] and item['contains'] in station):
-						included.add(item['contains'])
-						strList.append("[](")
-						strList.append(msgLink if replaceMLSLive and item['contains'] == "MLS LIVE" else item['link'])
-						strList.append(")")
-						if not item['allowMLS']:
-							allowMLS = False
-
-	return ''.join(strList)
+	return ""
 
 
 ### Parse table ###
@@ -155,6 +124,8 @@ def parseTable():
 		,{'title': 'Goals For', 'name': 'goalsFor'}
 		,{'title': 'Goal Difference', 'name': 'goalDiff'}
 		,{'title': 'Wins', 'name': 'wins'}
+		,{'title': 'Losses', 'name': 'losses'}
+		,{'title': 'Ties', 'name': 'ties'}
 	]
 
 	for element in elements:
@@ -212,36 +183,9 @@ def parseTable():
 	return sortedStandings
 
 
-def printTable(standings):
-	strList = []
-	strList.append("**[Standings](http://www.mlssoccer.com/standings)**\n\n")
-	strList.append("*")
-	strList.append(datetime.datetime.now().strftime("%m/%d/%y"))
-	strList.append("*\n\n")
-	strList.append("Pos | Team | Pts | GP | GF | GD\n")
-	strList.append(":--:|:--:|:--:|:--:|:--:|:--:\n")
-
-	for team in standings:
-		strList.append(team['ranking'])
-		strList.append(" | ")
-		strList.append(getTeamLink(team['name'])[0])
-		strList.append(" | **")
-		strList.append(team['points'])
-		strList.append("** | ")
-		strList.append(team['played'])
-		strList.append(" | ")
-		strList.append(team['goalsFor'])
-		strList.append(" | ")
-		strList.append(team['goalDiff'])
-		strList.append(" |\n")
-
-	strList.append("\n\n\n")
-	return strList
-
-
 ### Parse schedule ###
 def parseSchedule():
-	page = requests.get("https://www.newyorkredbulls.com/schedule?year=2017")
+	page = requests.get("https://www.soundersfc.com/schedule?year=2017")
 	tree = html.fromstring(page.content)
 
 	schedule = []
@@ -262,11 +206,12 @@ def parseSchedule():
 			match['datetime'] = datetime.datetime.strptime(dateElement[0].strip(), "%A, %B %d, %Y")
 			match['status'] = 'tbd'
 		else:
-			match['datetime'] = datetime.datetime.strptime(dateElement[0] + timeElement[0], "%A, %B %d, %Y %I:%M%p ET")
+			match['datetime'] = datetime.datetime.strptime(dateElement[0] + timeElement[0], "%A, %B %d, %Y %I:%M%p PT")
 			match['status'] = ''
 
 		statusElement = element.xpath(".//span[contains(@class,'match_result')]/text()")
 		if len(statusElement):
+			match['scoreString'] = statusElement[0].replace('IN', '').replace('OSS', '').replace('RAW', '')
 			match['status'] = 'final'
 			homeScores = re.findall('(\d+).*-', statusElement[0])
 			if len(homeScores):
@@ -293,9 +238,9 @@ def parseSchedule():
 
 		if homeAwayElement[0] == 'H':
 			match['home'] = TEAM_NAME
-			match['away'] = opponentElement[0]
+			match['away'] = opponentElement[0].title()
 		elif homeAwayElement[0] == 'A':
-			match['home'] = opponentElement[0][3:]
+			match['home'] = opponentElement[0][3:].title()
 			match['away'] = TEAM_NAME
 		else:
 			log.debug("Could not find opponent")
@@ -307,9 +252,9 @@ def parseSchedule():
 		else:
 			match['comp'] = ""
 
-		tvElement = element.xpath(".//div[contains(@class,'match_info')]/text()")
+		tvElement = element.xpath(".//div[@class='match_info']/text()")
 		if len(tvElement):
-			match['tv'] = tvElement[0]
+			match['tv'] = tvElement[0][0:tvElement[0].find(',')].replace('\n','')
 		else:
 			match['tv'] = ""
 
@@ -347,34 +292,13 @@ while True:
 	startTime = time.perf_counter()
 	log.debug("Starting run")
 
-	strList = []
+	strListGames = []
+	strListTable = []
 	skip = False
 
 	schedule = []
 	standings = []
 	try:
-		resp = requests.get(url="https://www.reddit.com/r/"+SUBREDDIT_TEAMS+"/wiki/sidebar-teams.json", headers={'User-Agent': USER_AGENT})
-		jsonData = json.loads(resp.text)
-		teamText = jsonData['data']['content_md']
-
-		firstLine = True
-		for teamLine in teamText.splitlines():
-			if firstLine:
-				firstLine = False
-				continue
-			if teamLine.strip() == "":
-				continue
-			teamArray = teamLine.strip().split('|')
-			if len(teamArray) < 4:
-				log.warning("Couldn't parse team line: " + teamLine)
-				continue
-			team = {'contains': teamArray[0]
-				,'acronym': teamArray[1]
-				,'link': teamArray[2]
-				,'include': True if teamArray[3] == 'include' else False
-			}
-			teams.append(team)
-
 		schedule = parseSchedule()
 		standings = parseTable()
 	except Exception as err:
@@ -391,66 +315,53 @@ while True:
 				if game['datetime'] + datetime.timedelta(hours=2) > datetime.datetime.now() and nextGameIndex == -1:
 					nextGameIndex = len(teamGames) - 1
 
-		strList.append("##Upcoming Events\n\n")
-		strList.append("Description|Time (ET)|TV\n")
-		strList.append("---|---:|:---:|---|\n")
-		for game in teamGames[nextGameIndex:nextGameIndex+4]:
-			strList.append("**")
-			strList.append(game['datetime'].strftime("%m/%d"))
-			strList.append("**[](")
-			strList.append(getCompLink(game['comp']))
-			strList.append(")||")
+		strListGames.append("##Recent Match Results\n\n")
+		strListGames.append("Date|||Opponent|Result\n")
+		strListGames.append(":---:|:---:|---|:---|:---:|:---:\n")
+
+		for game in teamGames[nextGameIndex-8:nextGameIndex]:
+			strListGames.append(game['datetime'].strftime("%m/%d"))
+			strListGames.append("|[](")
+			strListGames.append(getCompLink(game['comp']))
+			strListGames.append(")|")
 			if game['home'] == TEAM_NAME:
-				strList.append("**Home**|\n")
-				homeLink, homeInclude = getTeamLink(game['away'], True)
-				strList.append(homeLink)
+				strListGames.append("H")
+				strListGames.append("|")
+				strListGames.append(game['away'])
 			else:
-				strList.append("*Away*|\n")
-				awayLink, awayInclude = getTeamLink(game['home'], True)
-				strList.append(awayLink)
-			strList.append("|")
+				strListGames.append("A")
+				strListGames.append("|")
+				strListGames.append(game['home'])
+			strListGames.append("|[")
+			strListGames.append(game['scoreString'])
+			strListGames.append("]")
+			strListGames.append("\n")
+
+		strListGames.append("##Upcoming Matches\n\n")
+		strListGames.append("Date|||Opponent|PDT|Watch\n")
+		strListGames.append(":---:|:---:|---|---|---|:---\n")
+		for game in teamGames[nextGameIndex:nextGameIndex+5]:
+			strListGames.append(game['datetime'].strftime("%m/%d"))
+			strListGames.append("|")
+			strListGames.append("[](")
+			strListGames.append(getCompLink(game['comp']))
+			strListGames.append(")|")
+			if game['home'] == TEAM_NAME:
+				strListGames.append("H|")
+				strListGames.append(game['away'])
+			else:
+				strListGames.append("A|")
+				strListGames.append(game['home'])
+			strListGames.append("|")
 			if game['status'] == 'tbd':
-				strList.append("TBD")
+				strListGames.append("TBD")
 			else:
-				strList.append(game['datetime'].strftime("%I:%M"))
-			strList.append("|")
-			strList.append(getChannelLink(game['tv'], True))
-			strList.append("|\n")
+				strListGames.append(game['datetime'].strftime("%I:%M %p"))
+			strListGames.append("|")
+			strListGames.append(game['tv'])
+			strListGames.append("\n")
 
-		strList.append("\n\n")
-		strList.append("##Previous Results\n\n")
-		strList.append("Date|Home|Result|Away\n")
-		strList.append(":---:|:---:|:---:|:---:|\n")
-
-		for game in reversed(teamGames[nextGameIndex-4:nextGameIndex]):
-			strList.append("[")
-			strList.append(game['datetime'].strftime("%m/%d"))
-			strList.append("](")
-			strList.append(getCompLink(game['comp']))
-			strList.append(")|")
-			if game['home'] == TEAM_NAME:
-				RBNYHome = True
-			else:
-				RBNYHome = False
-			if RBNYHome:
-				strList.append("**")
-			strList.append(getTeamLink(game['home'], True, True))
-			if RBNYHome:
-				strList.append("**")
-			strList.append("|")
-			strList.append(game['homeScore'])
-			strList.append("-")
-			strList.append(game['awayScore'])
-			strList.append("|")
-			if not RBNYHome:
-				strList.append("**")
-			strList.append(getTeamLink(game['away'], True, True))
-			if not RBNYHome:
-				strList.append("**")
-			strList.append("\n")
-
-		strList.append("\n\n")
-		strList.append("## MLS Standings\n\n")
+		strListGames.append("\n\n")
 
 
 	except Exception as err:
@@ -459,7 +370,29 @@ while True:
 		skip = True
 
 	try:
-		strList.extend(printTable(standings))
+		strListTable.append("##2017 Western Conference Standings\n\n")
+		strListTable.append("Club|Pts|GP|W|L|D|GD\n")
+		strListTable.append(":---|:---:|:---:|:---:|:---:|:---:|:---:\n")
+
+		for team in standings:
+			if team['conf'] != 'W':
+				continue
+			strListTable.append(getTeamLink(team['name']))
+			strListTable.append(" | ")
+			strListTable.append(team['points'])
+			strListTable.append(" | ")
+			strListTable.append(team['played'])
+			strListTable.append(" | ")
+			strListTable.append(team['wins'])
+			strListTable.append(" | ")
+			strListTable.append(team['losses'])
+			strListTable.append(" | ")
+			strListTable.append(team['ties'])
+			strListTable.append(" | ")
+			strListTable.append(team['goalDiff'])
+			strListTable.append(" |\n")
+
+		strListTable.append("\n\n\n")
 	except Exception as err:
 		log.warning("Exception parsing table")
 		log.warning(traceback.format_exc())
@@ -469,14 +402,15 @@ while True:
 		try:
 			subreddit = r.subreddit(SUBREDDIT)
 			description = subreddit.description
-			begin = description[0:description.find("##Upcoming Events")]
-			end = description[description.find("##NYRB II (USL)"):]
+			begin = description[0:description.find("##Recent Match Results")]
+			mid = description[description.find("##S2 Matches"):description.find("##2017 Western Conference Standings")]
+			end = description[description.find("##2017 Top Goal Scorers "):]
 
 			if debug:
-				log.info(begin + ''.join(strList) + end)
+				log.info(begin + ''.join(strListGames) +mid + ''.join(strListTable) + end)
 			else:
 				try:
-					subreddit.mod.update(description=begin + ''.join(strList) + end)
+					subreddit.mod.update(description=begin + ''.join(strListGames) +mid + ''.join(strListTable) + end)
 				except Exception as err:
 					log.warning("Exception updating sidebar")
 					log.warning(traceback.format_exc())
