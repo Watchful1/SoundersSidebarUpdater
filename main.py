@@ -319,7 +319,7 @@ while True:
 		strListGames.append("Date|||Opponent|Result\n")
 		strListGames.append(":---:|:---:|---|:---|:---:|:---:\n")
 
-		for game in teamGames[nextGameIndex-7:nextGameIndex]:
+		for game in teamGames[nextGameIndex-9:nextGameIndex]:
 			strListGames.append(game['datetime'].strftime("%m/%d"))
 			strListGames.append("|[](")
 			strListGames.append(getCompLink(game['comp']))
@@ -340,7 +340,7 @@ while True:
 		strListGames.append("##Upcoming Matches\n\n")
 		strListGames.append("Date|||Opponent|PDT|Watch\n")
 		strListGames.append(":---:|:---:|---|---|---|:---\n")
-		for game in teamGames[nextGameIndex:nextGameIndex+4]:
+		for game in teamGames[nextGameIndex:nextGameIndex+6]:
 			strListGames.append(game['datetime'].strftime("%m/%d"))
 			strListGames.append("|")
 			strListGames.append("[](")
