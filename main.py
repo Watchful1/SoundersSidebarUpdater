@@ -18,7 +18,7 @@ LOG_FOLDER_NAME = "logs"
 SUBREDDIT = "SoundersFC"
 SUBREDDIT_TEAMS = "mls"
 USER_AGENT = "SoundersSideBarUpdater (by /u/Watchful1)"
-TEAM_NAME = "New York Red Bulls"
+TEAM_NAME = "Seattle Sounders FC"
 
 ### Logging setup ###
 LOG_LEVEL = logging.DEBUG
@@ -73,6 +73,7 @@ teams = [{'link': '/r/dynamo', 'contains': 'Houston Dynamo'}
 	,{'link': '/r/LAGalaxy', 'contains': 'LA Galaxy'}
 	,{'link': '/r/Rapids', 'contains': 'Colorado Rapids'}
 	,{'link': '/r/minnesotaunited', 'contains': 'Minnesota United'}
+	,{'link': '/r/LAFC', 'contains': 'Los Angeles Football Club'}
 ]
 
 
