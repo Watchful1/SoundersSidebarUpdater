@@ -109,6 +109,7 @@ def compareTeams(team1, team2):
 					log.error("Ran out of tiebreakers")
 					return True
 
+
 def parseTable():
 	page = requests.get("http://www.mlssoccer.com/standings")
 	tree = html.fromstring(page.content)
@@ -183,7 +184,6 @@ def parseTable():
 	return sortedStandings
 
 
-### Parse schedule ###
 def parseSchedule():
 	page = requests.get("https://www.soundersfc.com/schedule?year=2018")
 	tree = html.fromstring(page.content)
@@ -370,7 +370,7 @@ while True:
 		skip = True
 
 	try:
-		strListTable.append("##2017 Western Conference Standings\n\n")
+		strListTable.append("##2018 Western Conference Standings\n\n")
 		strListTable.append("Club|Pts|GP|W|L|D|GD\n")
 		strListTable.append(":---|:---:|:---:|:---:|:---:|:---:|:---:\n")
 
@@ -403,8 +403,8 @@ while True:
 			subreddit = r.subreddit(SUBREDDIT)
 			description = subreddit.description
 			begin = description[0:description.find("##Recent Match Results")]
-			mid = description[description.find("##S2 Matches"):description.find("##2017 Western Conference Standings")]
-			end = description[description.find("##2017 Top Goal Scorers "):]
+			mid = description[description.find("##S2 Matches"):description.find("##2018 Western Conference Standings")]
+			end = description[description.find("##2018 Top Goal Scorers "):]
 
 			if debug:
 				log.info(begin + ''.join(strListGames) +mid + ''.join(strListTable) + end)
